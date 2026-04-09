@@ -1,6 +1,35 @@
 `timescale 1ns / 1ps
 
-module adder_fnd (
+module adder_fnd (  //8 bit adder with fnd
+    input  [7:0] a,
+    input  [7:0] b,
+    input        clk,
+    input        rst,
+    output [3:0] fnd_com,
+    output [7:0] fnd_data,
+    output       led
+);
+
+    wire [7:0] w_sum;
+
+    full_adder_8bit U_FA_8 (
+        .a(a),
+        .b(b),
+        .s(w_sum),
+        .c(led)
+    );
+
+    fnd_controller U_FND_CNTL (
+        .fnd_in(w_sum),
+        .clk(clk),
+        .rst(rst),
+        .fnd_data(fnd_data),
+        .fnd_com(fnd_com)
+    );
+
+endmodule
+
+module adder_fnd_4 (  //4 bit adder with fnd
     input  [3:0] a,
     input  [3:0] b,
     output [3:0] fnd_com,
@@ -11,19 +40,44 @@ module adder_fnd (
     wire [3:0] w_sum;
 
     full_adder_4bit U_FA_4 (
-        .a  (a),
-        .b  (b),
-        .cin(1'b0),
-        .s  (w_sum),
-        .c  (led)
-    );  
-
-    fnd_controller U_FND_CNTL (
-        .bin(w_sum),
-        .fnd_data(fnd_data),
-        .fnd_com(fnd_com)
+        .a(a),
+        .b(b),
+        .s(w_sum),
+        .c(led)
     );
 
+    fnd_controller_4 U_FND_CNTL (
+        .bin     (w_sum),
+        .fnd_data(fnd_data),
+        .fnd_com (fnd_com)
+    );
+
+endmodule
+
+module full_adder_8bit (
+    input  [7:0] a,
+    input  [7:0] b,
+    output [7:0] s,
+    output       c
+);
+
+    wire w_c;
+
+    full_adder_4bit U_4_FA0 (  //lsb
+        .a  (a[3:0]),
+        .b  (b[3:0]),
+        .cin(1'b0),
+        .s  (s[3:0]),
+        .c  (w_c)
+    );
+
+    full_adder_4bit U_4_FA1 (  //msb
+        .a  (a[7:4]),
+        .b  (b[7:4]),
+        .cin(w_c),
+        .s  (s[7:4]),
+        .c  (c)
+    );
 
 endmodule
 
@@ -70,10 +124,6 @@ module full_adder_4bit (
     );
 
 endmodule
-
-
-
-
 
 module full_adder (
     input  a,
